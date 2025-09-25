@@ -174,94 +174,10 @@ sysctl -p
 nvidia-smi -pm 1  # Enable persistence mode
 nvidia-smi -ac 1215,2100  # Set memory and GPU clocks to max (if supported)
 
-# 7. Create test workspace
-log_info "Creating test workspace..."
-TEST_DIR="/workspace/rtx5090-test"
-mkdir -p $TEST_DIR
-cd $TEST_DIR
+# 7. System optimization complete
+log_info "System optimization completed"
 
-# Copy test script
-if [ -f "/Users/berkinaktas/Desktop/ffmpeg-gpu-test-5090/rtx5090_hls_test.sh" ]; then
-    cp /Users/berkinaktas/Desktop/ffmpeg-gpu-test-5090/rtx5090_hls_test.sh $TEST_DIR/
-else
-    log_warn "Local test script not found. Creating basic version..."
-    cat > rtx5090_hls_test.sh << 'EOF'
-#!/bin/bash
-# Basic RTX 5090 Test Script - Replace with your optimized version
-STREAMS_PER_ENCODER=10  # Start with lower number for testing
-
-echo "Creating test input..."
-ffmpeg -f lavfi -i testsrc2=size=1920x1080:rate=30:duration=60 -c:v libx264 -b:v 8M test_input.mp4
-
-echo "Testing single NVENC stream..."
-ffmpeg -hwaccel cuda -i test_input.mp4 -c:v h264_nvenc -preset p1 -vf scale_cuda=1280:720 -r 30 test_output.mp4
-
-echo "Basic test completed. Upload your optimized script for full test."
-EOF
-fi
-
-chmod +x rtx5090_hls_test.sh
-
-# Create directory structure
-mkdir -p outputs/{encoder1,encoder2,encoder3,logs}
-
-# 8. Performance monitoring setup
-log_info "Setting up performance monitoring..."
-cat > monitor_system.sh << 'EOF'
-#!/bin/bash
-# System monitoring script
-echo "Starting system monitoring..."
-
-# GPU monitoring
-nvidia-smi dmon -i 0 -s pucvmet -d 1 > gpu_metrics.log &
-nvidia-smi --query-gpu=memory.used,memory.free --format=csv -l 1 > gpu_memory.log &
-
-# CPU monitoring
-top -b -d1 -p $(pgrep ffmpeg | tr '\n' ',' | sed 's/,$//') > cpu_usage.log &
-
-# I/O monitoring
-iostat -x 1 > io_stats.log &
-
-echo "Monitoring started. Check log files for real-time data."
-echo "To stop monitoring: killall nvidia-smi top iostat"
-EOF
-
-chmod +x monitor_system.sh
-
-# 9. Create benchmark script
-cat > quick_benchmark.sh << 'EOF'
-#!/bin/bash
-# Quick GPU benchmark
-echo "RTX 5090 Quick Benchmark"
-echo "========================"
-
-# Test NVENC encoders
-echo "Testing NVENC encoders..."
-nvidia-smi --query-gpu=count --format=csv,noheader,nounits
-
-# Create test video
-ffmpeg -f lavfi -i testsrc2=size=1920x1080:rate=30:duration=10 -c:v libx264 -b:v 8M quick_test.mp4
-
-# Single stream test
-echo "Single stream transcode test..."
-time ffmpeg -hwaccel cuda -i quick_test.mp4 -c:v h264_nvenc -preset p1 -vf scale_cuda=1280:720 -r 30 single_out.mp4
-
-# Multiple stream test (5 streams)
-echo "5 concurrent streams test..."
-start_time=$(date +%s)
-for i in {1..5}; do
-    ffmpeg -hwaccel cuda -stream_loop -1 -i quick_test.mp4 -c:v h264_nvenc -preset p1 -vf scale_cuda=1280:720 -r 30 -t 30 -f hls -hls_time 6 stream${i}.m3u8 > stream${i}.log 2>&1 &
-done
-wait
-end_time=$(date +%s)
-echo "5 streams completed in $((end_time - start_time)) seconds"
-
-echo "Benchmark completed!"
-EOF
-
-chmod +x quick_benchmark.sh
-
-# 10. Final verification
+# 8. Final verification
 log_info "Running final verification..."
 echo ""
 echo "=== SYSTEM VERIFICATION ==="
@@ -282,16 +198,5 @@ echo ""
 echo "=========================================="
 log_info "Environment setup completed successfully! ✅"
 echo "=========================================="
-echo ""
-echo "📁 Test directory: $TEST_DIR"
-echo "🚀 Quick test: ./quick_benchmark.sh"
-echo "📊 Monitoring: ./monitor_system.sh"
-echo "🎯 Main test: ./rtx5090_hls_test.sh"
-echo ""
-echo "Next steps:"
-echo "1. cd $TEST_DIR"
-echo "2. Run quick benchmark: ./quick_benchmark.sh"
-echo "3. Upload your optimized test script"
-echo "4. Run full test: ./rtx5090_hls_test.sh"
 echo ""
 log_info "Ready for RTX 5090 concurrent stream testing! 🚀"

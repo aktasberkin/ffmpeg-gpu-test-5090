@@ -66,7 +66,9 @@ start_encoder() {
             >"$test_dir/stream${i}.log" 2>&1 &
     done
 
-    echo "Encoder $encoder_id: $STREAMS_PER_ENCODER processes started"
+    # Wait for all streams in this encoder to complete
+    wait
+    echo "Encoder $encoder_id: All $STREAMS_PER_ENCODER processes completed"
 }
 
 # Start all 3 encoders (RunPod compatible - no systemd)
