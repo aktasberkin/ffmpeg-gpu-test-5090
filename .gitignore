@@ -1,0 +1,44 @@
+# Video files
+*.mp4
+*.mkv
+*.avi
+*.mov
+*.wmv
+*.flv
+*.webm
+
+# Audio files
+*.mp3
+*.wav
+*.aac
+*.m4a
+
+# HLS files
+*.m3u8
+*.ts
+
+# Log files
+*.log
+
+# Output directories
+outputs/
+test_outputs/
+
+# Temporary files
+*.tmp
+*.temp
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor files
+*.swp
+*.swo
+*~
+
+# Test files
+test_*
+concurrent_*
+nvenc_*
+software_test.*

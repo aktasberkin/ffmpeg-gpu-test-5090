@@ -1,0 +1,7 @@
+Input #0, lavfi, from 'color=blue:size=128x128:rate=1:duration=1':
+  Duration: N/A, start: 0.000000, bitrate: N/A
+  Stream #0:0: Video: wrapped_avframe, yuv420p, 128x128 [SAR 1:1 DAR 1:1], 1 fps, 1 tbr, 1 tbn
+[vost#0:0 @ 0x123805280] Unknown encoder 'h264_nvenc'
+[vost#0:0 @ 0x123805280] Error selecting an encoder
+Error opening output file nvenc_simple.mp4.
+Error opening output files: Encoder not found
