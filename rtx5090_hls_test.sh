@@ -16,7 +16,10 @@ mkdir -p $BASE_DIR/{encoder1,encoder2,encoder3,logs}
 # Create test input if not exists
 if [ ! -f "$INPUT_FILE" ]; then
     echo "Creating test input file..."
-    ffmpeg -f lavfi -i testsrc2=size=1920x1080:rate=30:duration=300 -c:v libx264 -b:v 8M $INPUT_FILE
+    ffmpeg -f lavfi -i testsrc2=size=1920x1080:rate=30:duration=300 \
+           -c:v libx264 -preset ultrafast -crf 28 \
+           -b:v 4M -maxrate 6M -bufsize 2M \
+           $INPUT_FILE
 fi
 
 echo "Starting RTX 5090 - 3 Encoder HLS Test..."
@@ -66,19 +69,17 @@ start_encoder() {
     echo "Encoder $encoder_id: $STREAMS_PER_ENCODER processes started"
 }
 
-# Start all 3 encoders with CPU core assignment and memory limits
+# Start all 3 encoders (RunPod compatible - no systemd)
 START_TIME=$(date +%s)
 
-# Encoder 1: Cores 0-15, 16GB memory limit
-systemd-run --scope -p MemoryLimit=16G taskset -c 0-15 bash -c "$(declare -f start_encoder); start_encoder 1" &
+# Simple approach: Start encoders directly in background
+start_encoder 1 &
 ENCODER1_PID=$!
 
-# Encoder 2: Cores 16-31, 16GB memory limit
-systemd-run --scope -p MemoryLimit=16G taskset -c 16-31 bash -c "$(declare -f start_encoder); start_encoder 2" &
+start_encoder 2 &
 ENCODER2_PID=$!
 
-# Encoder 3: Cores 32-47, 16GB memory limit
-systemd-run --scope -p MemoryLimit=16G taskset -c 32-47 bash -c "$(declare -f start_encoder); start_encoder 3" &
+start_encoder 3 &
 ENCODER3_PID=$!
 
 echo "All encoders started. Monitoring..."
